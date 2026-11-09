@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, update, set, $, esc, param, roomUrl, isAdminUser, waitForUser, sortQueue, toast,
-} from "./common.js?v=6";
-import { QR_SECONDS } from "./config.js?v=6";
+} from "./common.js?v=7";
+import { QR_SECONDS } from "./config.js?v=7";
 
 const roomId = param("r");
 let queue = [];
@@ -62,7 +62,17 @@ function ytReady() {
   player = new YT.Player("player", {
     playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, iv_load_policy: 3, fs: 0 },
     events: {
-      onStateChange: (e) => { if (e.data === YT.PlayerState.ENDED) playNext(); },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) playNext();
+        // Báo trạng thái tạm dừng để nút trên trang admin hiển thị đúng.
+        else if (current && (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.PLAYING)) {
+          const paused = e.data === YT.PlayerState.PAUSED;
+          if (!!current.paused !== paused) {
+            current.paused = paused;
+            update(ref(db, `rooms/${roomId}/now`), { paused }).catch(() => {});
+          }
+        }
+      },
       onError: () => { toast("Video không phát được, chuyển bài tiếp theo"); setTimeout(playNext, 1500); },
     },
   });

@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=6";
+} from "./common.js?v=7";
 
 const roomId = param("r");
 let queue = [];
@@ -34,6 +34,8 @@ let now = null;
   onValue(ref(db, `rooms/${roomId}/now`), (s) => {
     const n = s.val();
     now = n;
+    $("#toggle").textContent = n?.paused ? "▶ Tiếp tục" : "⏸ Tạm dừng";
+    $("#toggle").disabled = !n;
     refreshTaken();
     $("#now").innerHTML = n
       ? `<img src="${esc(n.thumb)}" alt=""><div class="info"><div class="title">${esc(n.title)}</div><div class="muted small">🎤 ${esc(n.by)}</div></div>`
@@ -41,6 +43,9 @@ let now = null;
   });
 
   onValue(ref(db, `rooms/${roomId}/queue`), (s) => { queue = sortQueue(s.val()); renderQueue(); renderNext(); refreshTaken(); });
+
+  $("#toggle").onclick = () =>
+    set(ref(db, `rooms/${roomId}/cmd`), { type: now?.paused ? "play" : "pause", at: Date.now() });
 
   document.querySelectorAll("[data-cmd]").forEach((b) => {
     b.onclick = () => set(ref(db, `rooms/${roomId}/cmd`), { type: b.dataset.cmd, at: Date.now() });
