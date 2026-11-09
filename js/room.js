@@ -1,10 +1,11 @@
 import {
   auth, db, ref, onValue, set, remove, $, esc, param, waitForUser, signInAnonymously,
-  sortQueue, addToQueue, prioritize, wireSearch, toast,
+  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
 } from "./common.js";
 
 const roomId = param("r");
 let queue = [];
+let now = null;
 let meta = {};
 let myName = "";
 
@@ -51,12 +52,14 @@ function askName() {
 
   onValue(ref(db, `rooms/${roomId}/now`), (s) => {
     const n = s.val();
+    now = n;
+    refreshTaken();
     $("#now").innerHTML = n
       ? `<img src="${esc(n.thumb)}" alt=""><div class="info"><div class="title">${esc(n.title)}</div><div class="muted small">🎤 ${esc(n.by)}</div></div>`
       : `<div class="info muted">Chưa có bài nào, chọn bài đầu tiên đi!</div>`;
   });
 
-  onValue(ref(db, `rooms/${roomId}/queue`), (s) => { queue = sortQueue(s.val()); renderQueue(); });
+  onValue(ref(db, `rooms/${roomId}/queue`), (s) => { queue = sortQueue(s.val()); renderQueue(); renderNext(); refreshTaken(); });
 
   $("#skip").onclick = async () => {
     if (!confirm("Chuyển sang bài tiếp theo?")) return;
@@ -77,7 +80,7 @@ function askName() {
     await addToQueue(roomId, video, myName, queue);
     const pos = queue.length + 1;
     toast(`Đã thêm! Bài của bạn đứng thứ ${pos} trong danh sách.`);
-  });
+  }, () => takenIds(queue, now));
 })();
 
 function renderQueue() {
@@ -109,4 +112,13 @@ function renderQueue() {
     }
     el.appendChild(row);
   });
+}
+
+function refreshTaken() { markTaken($("#results"), takenIds(queue, now)); }
+
+function renderNext() {
+  const n = queue[0];
+  $("#next").innerHTML = n
+    ? `<span class="muted">Tiếp theo:</span> <b>${esc(n.title)}</b> <span class="muted">· 🎤 ${esc(n.by)}</span>`
+    : `<span class="muted">Tiếp theo: chưa có bài nào</span>`;
 }

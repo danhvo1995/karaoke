@@ -31,7 +31,7 @@ function ytReady() {
 
   const guestUrl = roomUrl("room.html", roomId);
   $("#qr-big").innerHTML = qrImg(guestUrl, 8);
-  $("#qr-small").innerHTML = qrImg(guestUrl, 4);
+  $("#qr-small").innerHTML = qrImg(guestUrl, 6);
 
   onValue(ref(db, `rooms/${roomId}/meta`), (s) => {
     const m = s.val() || {};
@@ -123,7 +123,7 @@ function renderNow() {
 
 function renderNext() {
   const n = queue[0];
-  $("#next-box").innerHTML = n ? `Tiếp theo: <b>${esc(n.by)}</b> · ${esc(n.title)}` : "Tiếp theo: (trống), quét mã để chọn bài!";
+  $("#next-box").innerHTML = n ? `Tiếp theo: <span class="who">🎤 ${esc(n.by)}</span> · ${esc(n.title)}` : "Tiếp theo: chưa có bài, quét mã QR để chọn bài!";
 }
 
 function tickOverlay() {
@@ -139,5 +139,6 @@ function tickOverlay() {
   }
   $("#qr-box").classList.toggle("off", !show);
   $("#now-box").classList.toggle("hidden", !show);
-  $("#next-box").classList.toggle("hidden", !show);
+  // "Tiếp theo" luôn hiện khi đang phát để mọi người biết bài kế.
+  $("#next-box").classList.toggle("hidden", !current);
 }

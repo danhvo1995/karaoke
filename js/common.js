@@ -102,22 +102,42 @@ export async function prioritize(roomId, itemId, queueArr) {
 }
 
 // ---------- Giao diện kết quả tìm kiếm ----------
-export function renderResults(container, items, onPick) {
+export function renderResults(container, items, onPick, taken = new Set()) {
   container.innerHTML = items.length ? "" : `<p class="muted">Không có kết quả.</p>`;
   for (const it of items) {
     const row = document.createElement("div");
     row.className = "song";
     row.innerHTML = `<img src="${esc(it.thumb)}" alt="" loading="lazy">
       <div class="info"><div class="title">${esc(it.title)}</div><div class="muted small">${esc(it.channel)}</div></div>
-      <button class="btn primary">Thêm</button>`;
+      <button class="btn primary"></button>`;
     const btn = row.querySelector("button");
+    btn.dataset.vid = it.videoId;
     btn.onclick = async () => {
       btn.disabled = true;
-      try { await onPick(it); btn.textContent = "Đã thêm"; }
+      try { await onPick(it); setBtn(btn, true); }
       catch (e) { toast(e.message); btn.disabled = false; }
     };
+    setBtn(btn, taken.has(it.videoId));
     container.appendChild(row);
   }
+}
+
+function setBtn(btn, isTaken) {
+  btn.disabled = isTaken;
+  btn.textContent = isTaken ? "Đã có" : "Thêm";
+  btn.classList.toggle("primary", !isTaken);
+}
+
+// Cập nhật nút "Thêm"/"Đã có" khi danh sách phát thay đổi.
+export function markTaken(container, taken) {
+  container.querySelectorAll("button[data-vid]").forEach((b) => setBtn(b, taken.has(b.dataset.vid)));
+}
+
+// Các videoId đang có trong danh sách hoặc đang phát.
+export function takenIds(queueArr, now) {
+  const s = new Set(queueArr.map((q) => q.videoId));
+  if (now?.videoId) s.add(now.videoId);
+  return s;
 }
 
 export function toast(msg) {
@@ -129,7 +149,7 @@ export function toast(msg) {
   el._t = setTimeout(() => el.classList.remove("show"), 3500);
 }
 
-export function wireSearch(form, resultsEl, onPick) {
+export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set()) {
   form.onsubmit = async (e) => {
     e.preventDefault();
     const q = form.q.value.trim();
@@ -137,7 +157,7 @@ export function wireSearch(form, resultsEl, onPick) {
     resultsEl.innerHTML = `<p class="muted">Đang tìm…</p>`;
     try {
       const items = await searchYouTube(q, form.karaoke ? form.karaoke.checked : true);
-      renderResults(resultsEl, items, onPick);
+      renderResults(resultsEl, items, onPick, getTaken());
     } catch (err) {
       resultsEl.innerHTML = `<p class="error">${esc(err.message)}</p>`;
     }

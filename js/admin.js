@@ -1,10 +1,11 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
-  sortQueue, addToQueue, prioritize, wireSearch, toast,
+  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
 } from "./common.js";
 
 const roomId = param("r");
 let queue = [];
+let now = null;
 
 (async () => {
   const u = await waitForUser();
@@ -32,12 +33,14 @@ let queue = [];
 
   onValue(ref(db, `rooms/${roomId}/now`), (s) => {
     const n = s.val();
+    now = n;
+    refreshTaken();
     $("#now").innerHTML = n
       ? `<img src="${esc(n.thumb)}" alt=""><div class="info"><div class="title">${esc(n.title)}</div><div class="muted small">🎤 ${esc(n.by)}</div></div>`
       : `<div class="info muted">Chưa phát bài nào. Hãy mở màn hình TV và bấm Bắt đầu.</div>`;
   });
 
-  onValue(ref(db, `rooms/${roomId}/queue`), (s) => { queue = sortQueue(s.val()); renderQueue(); });
+  onValue(ref(db, `rooms/${roomId}/queue`), (s) => { queue = sortQueue(s.val()); renderQueue(); renderNext(); refreshTaken(); });
 
   document.querySelectorAll("[data-cmd]").forEach((b) => {
     b.onclick = () => set(ref(db, `rooms/${roomId}/cmd`), { type: b.dataset.cmd, at: Date.now() });
@@ -54,7 +57,7 @@ let queue = [];
   wireSearch($("#search-form"), $("#results"), async (video) => {
     await addToQueue(roomId, video, "MC", queue, { admin: true });
     toast("Đã thêm: " + video.title);
-  });
+  }, () => takenIds(queue, now));
 })();
 
 function swap(i, j) {
@@ -91,4 +94,13 @@ function renderQueue() {
     on("del", () => remove(ref(db, `rooms/${roomId}/queue/${q.id}`)));
     el.appendChild(row);
   });
+}
+
+function refreshTaken() { markTaken($("#results"), takenIds(queue, now)); }
+
+function renderNext() {
+  const n = queue[0];
+  $("#next").innerHTML = n
+    ? `<span class="muted">Tiếp theo:</span> <b>${esc(n.title)}</b> <span class="muted">· 🎤 ${esc(n.by)}</span>`
+    : `<span class="muted">Tiếp theo: chưa có bài nào</span>`;
 }
