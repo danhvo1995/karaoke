@@ -1,7 +1,7 @@
 import {
   auth, db, ref, onValue, set, remove, $, esc, param, waitForUser, signInAnonymously,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=5";
+} from "./common.js?v=6";
 
 const roomId = param("r");
 let queue = [];
@@ -112,7 +112,7 @@ function renderQueue() {
     if (mine) {
       const b = document.createElement("button");
       b.className = "btn small danger"; b.textContent = "✕ Xóa"; b.title = "Xóa bài của bạn";
-      b.onclick = () => remove(ref(db, `rooms/${roomId}/queue/${q.id}`));
+      b.onclick = () => { if (confirm(`Xóa bài "${q.title}" khỏi danh sách?`)) remove(ref(db, `rooms/${roomId}/queue/${q.id}`)); };
       actions.appendChild(b);
     }
     el.appendChild(row);

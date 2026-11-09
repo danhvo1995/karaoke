@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=5";
+} from "./common.js?v=6";
 
 const roomId = param("r");
 let queue = [];
@@ -91,7 +91,7 @@ function renderQueue() {
     on("top", () => prioritize(roomId, q.id, queue));
     on("up", () => swap(i, i - 1));
     on("down", () => swap(i, i + 1));
-    on("del", () => remove(ref(db, `rooms/${roomId}/queue/${q.id}`)));
+    on("del", () => { if (confirm(`Xóa bài "${q.title}" (${q.by} chọn) khỏi danh sách?`)) remove(ref(db, `rooms/${roomId}/queue/${q.id}`)); });
     el.appendChild(row);
   });
 }
