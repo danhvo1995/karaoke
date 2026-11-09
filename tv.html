@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Màn hình TV – Karaoke</title>
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=10">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 </head>
 <body class="tv">
@@ -16,8 +16,10 @@
   <div style="font-size:3vh">Quét mã để chọn bài hát</div>
 </div>
 
-<div id="now-box" class="tv-overlay hidden"></div>
-<div id="next-box" class="tv-overlay hidden"></div>
+<div id="top-info" class="tv-overlay">
+  <div id="now-box" class="hidden"></div>
+  <div id="next-box" class="hidden"></div>
+</div>
 <div id="qr-box" class="tv-overlay off"><div id="qr-small"></div><div class="cap">Quét để chọn bài</div></div>
 
 <div id="start">
@@ -27,6 +29,6 @@
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
-<script type="module" src="js/tv.js?v=9"></script>
+<script type="module" src="js/tv.js?v=10"></script>
 </body>
 </html>
