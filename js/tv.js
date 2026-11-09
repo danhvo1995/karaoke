@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, update, set, $, esc, param, roomUrl, isAdminUser, waitForUser, sortQueue, toast,
-} from "./common.js?v=8";
-import { QR_SECONDS } from "./config.js?v=8";
+} from "./common.js?v=9";
+import { QR_SECONDS } from "./config.js?v=9";
 
 const roomId = param("r");
 let queue = [];
@@ -122,7 +122,7 @@ function showIdle(on) { $("#idle").classList.toggle("hidden", !on); }
 
 function renderNow() {
   $("#now-box").innerHTML = current
-    ? `<span class="who">🎤 ${esc(current.by)}</span> · ${esc(current.title)}` : "";
+    ? `Đang hát: <span class="who">🎤 ${esc(current.by)}</span> · ${esc(current.title)}` : "";
 }
 
 function renderNext() {
