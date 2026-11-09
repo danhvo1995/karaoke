@@ -96,17 +96,17 @@ function renderQueue() {
     row.className = "song";
     row.innerHTML = `<div class="idx">${i + 1}</div><img src="${esc(q.thumb)}" alt="">
       <div class="info"><div class="title">${esc(q.title)}</div><div class="muted small">🎤 ${esc(q.by)}${mine ? " (bạn)" : ""}</div></div>
-      <div class="actions"></div>`;
+      <div class="actions col"></div>`;
     const actions = row.querySelector(".actions");
     if (meta.open && meta.allowGuestPriority && i > 0) {
       const b = document.createElement("button");
-      b.className = "btn small"; b.textContent = "⤒ Ưu tiên";
+      b.className = "btn small"; b.textContent = "⤒ Ưu tiên"; b.title = "Đưa bài lên đầu danh sách";
       b.onclick = () => prioritize(roomId, q.id, queue).catch(() => toast("Không được phép ưu tiên lúc này."));
       actions.appendChild(b);
     }
     if (mine) {
       const b = document.createElement("button");
-      b.className = "btn small danger"; b.textContent = "✕";
+      b.className = "btn small danger"; b.textContent = "✕ Xóa"; b.title = "Xóa bài của bạn";
       b.onclick = () => remove(ref(db, `rooms/${roomId}/queue/${q.id}`));
       actions.appendChild(b);
     }
