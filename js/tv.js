@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, update, set, $, esc, param, roomUrl, isAdminUser, waitForUser, sortQueue, toast,
-} from "./common.js?v=10";
-import { QR_SECONDS } from "./config.js?v=10";
+} from "./common.js?v=11";
+import { QR_SECONDS } from "./config.js?v=11";
 
 const roomId = param("r");
 let queue = [];
@@ -9,6 +9,7 @@ let current = null;      // bài đang phát
 let started = false;
 let advancing = false;
 let player = null;
+let qrManualUntil = 0;   // admin bấm "Hiện QR": hiện đến thời điểm này
 
 function qrImg(text, cell) {
   const qr = qrcode(0, "M");
@@ -51,6 +52,7 @@ function ytReady() {
     if (c.type === "pause") player.pauseVideo();
     else if (c.type === "play") player.playVideo();
     else if (c.type === "skip") playNext();
+    else if (c.type === "qr") qrManualUntil = Date.now() < qrManualUntil ? 0 : Date.now() + QR_SECONDS * 1000;
   });
   listenOnce(`rooms/${roomId}/skipReq`, (r) => {
     if (!current) return;
@@ -152,6 +154,7 @@ function tickOverlay() {
       show = t < Q || t > d - Q || (d > 3 * Q && t >= mid - Q / 2 && t < mid + Q / 2);
     }
   }
+  if (current && Date.now() < qrManualUntil) show = true;
   $("#qr-box").classList.toggle("off", !show);
   $("#now-box").classList.toggle("hidden", !show);
   // "Tiếp theo" luôn hiện khi đang phát để mọi người biết bài kế.
