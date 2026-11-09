@@ -1,10 +1,10 @@
 {
   "rules": {
     "rooms": {
-      ".read": "auth != null && auth.token.email === 'ADMIN_EMAIL'",
+      ".read": "auth != null && auth.token.email === 'danhvo1995@gmail.com'",
       "$roomId": {
         ".read": "auth != null",
-        ".write": "auth != null && auth.token.email === 'ADMIN_EMAIL'",
+        ".write": "auth != null && auth.token.email === 'danhvo1995@gmail.com'",
         "queue": {
           "$itemId": {
             ".write": "auth != null && root.child('rooms').child($roomId).child('meta/open').val() === true && ((!data.exists() && newData.child('byUid').val() === auth.uid) || (!newData.exists() && data.child('byUid').val() === auth.uid))",
