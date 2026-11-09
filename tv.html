@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Màn hình TV – Karaoke</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+</head>
+<body class="tv">
+<div id="player-wrap"><div id="player"></div></div>
+
+<div id="idle">
+  <h1 id="idle-title">🎤 Karaoke</h1>
+  <div class="qr-big" id="qr-big"></div>
+  <div style="font-size:3vh">Quét mã để chọn bài hát</div>
+</div>
+
+<div id="now-box" class="tv-overlay hidden"></div>
+<div id="next-box" class="tv-overlay hidden"></div>
+<div id="qr-box" class="tv-overlay off"><div id="qr-small"></div><div class="cap">Quét để chọn bài</div></div>
+
+<div id="start">
+  <h1 id="start-title">Màn hình TV</h1>
+  <p class="muted">Kéo cửa sổ này sang màn hình TV rồi bấm nút bên dưới.</p>
+  <button class="btn primary" id="start-btn" style="font-size:1.3rem;padding:14px 28px">▶ Bắt đầu (toàn màn hình)</button>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script type="module" src="js/tv.js"></script>
+</body>
+</html>

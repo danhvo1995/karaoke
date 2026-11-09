@@ -1,0 +1,38 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": "auth != null && auth.token.email === 'ADMIN_EMAIL'",
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email === 'ADMIN_EMAIL'",
+        "queue": {
+          "$itemId": {
+            ".write": "auth != null && root.child('rooms').child($roomId).child('meta/open').val() === true && ((!data.exists() && newData.child('byUid').val() === auth.uid) || (!newData.exists() && data.child('byUid').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['videoId', 'title', 'by', 'byUid', 'order'])",
+            "order": {
+              ".write": "auth != null && data.exists() && newData.exists() && root.child('rooms').child($roomId).child('meta/open').val() === true && root.child('rooms').child($roomId).child('meta/allowGuestPriority').val() === true",
+              ".validate": "newData.isNumber()"
+            },
+            "videoId": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "title": { ".validate": "newData.isString() && newData.val().length <= 300" },
+            "thumb": { ".validate": "newData.isString() && newData.val().length <= 300" },
+            "by": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+            "byUid": { ".validate": "newData.isString()" },
+            "$other": { ".validate": false }
+          }
+        },
+        "skipReq": {
+          ".write": "auth != null && root.child('rooms').child($roomId).child('meta/open').val() === true && root.child('rooms').child($roomId).child('meta/allowGuestSkip').val() === true",
+          ".validate": "newData.hasChildren(['at', 'by']) && newData.child('at').isNumber()"
+        }
+      }
+    },
+    "searchCache": {
+      "$key": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['t', 'items'])"
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý room – Karaoke</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between">
+    <a href="index.html" class="small">← Các room</a>
+    <a id="tv-link" class="btn primary" target="_blank" rel="noopener">Mở màn hình TV</a>
+  </div>
+  <h1 id="room-name">…</h1>
+
+  <div class="panel now">
+    <div class="muted small">Đang phát</div>
+    <div id="now" class="song"><div class="info muted">Chưa phát bài nào</div></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" data-cmd="pause">⏸ Tạm dừng</button>
+      <button class="btn" data-cmd="play">▶ Tiếp tục</button>
+      <button class="btn warn" data-cmd="skip">⏭ Qua bài</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <label class="switch"><input type="checkbox" id="open"> Room đang mở (khách được thêm bài)</label>
+      <label class="switch"><input type="checkbox" id="allowSkip"> Khách được qua bài</label>
+      <label class="switch"><input type="checkbox" id="allowPrio"> Khách được ưu tiên bài</label>
+    </div>
+    <div class="row small muted" style="margin-top:8px">Link khách: <a id="guest-link" target="_blank" rel="noopener"></a>
+      <button class="btn small" id="copy">Copy</button></div>
+  </div>
+
+  <div class="tabs">
+    <button class="btn active" data-tab="queue">Danh sách phát (<span id="qcount">0</span>)</button>
+    <button class="btn" data-tab="search">Tìm bài</button>
+  </div>
+
+  <div id="tab-queue" class="panel"><div id="queue"></div></div>
+
+  <div id="tab-search" class="panel hidden">
+    <form id="search-form">
+      <div class="row">
+        <input class="grow" type="search" name="q" placeholder="Tên bài hát, ca sĩ…" autocomplete="off">
+        <button class="btn primary">Tìm</button>
+      </div>
+      <label class="switch small muted" style="margin-top:6px"><input type="checkbox" name="karaoke" checked> Chỉ tìm bản karaoke</label>
+    </form>
+    <div id="results"></div>
+  </div>
+</div>
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

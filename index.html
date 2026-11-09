@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karaoke đám cưới – Quản trị</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>🎤 Karaoke đám cưới</h1>
+
+  <div id="login" class="panel hidden">
+    <h2>Đăng nhập admin</h2>
+    <form id="login-form">
+      <p><input type="email" name="email" placeholder="Email" required autocomplete="username"></p>
+      <p><input type="password" name="password" placeholder="Mật khẩu" required autocomplete="current-password"></p>
+      <button class="btn primary">Đăng nhập</button>
+      <p id="login-err" class="error"></p>
+    </form>
+  </div>
+
+  <div id="main" class="hidden">
+    <div class="row" style="justify-content:space-between">
+      <span class="muted small" id="who"></span>
+      <button class="btn small" id="logout">Đăng xuất</button>
+    </div>
+    <div class="panel">
+      <h2>Tạo room mới</h2>
+      <form id="create-form" class="row">
+        <input class="grow" type="text" name="name" placeholder="Ví dụ: Đám cưới Nam & Lan" required maxlength="80">
+        <button class="btn primary">Tạo room</button>
+      </form>
+    </div>
+    <h2>Các room</h2>
+    <div id="rooms"></div>
+  </div>
+</div>
+<script type="module" src="js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chọn bài – Karaoke</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1 id="room-name">🎤 Karaoke</h1>
+  <p id="closed" class="panel error hidden">Room đã đóng, không thể chọn thêm bài.</p>
+
+  <div class="panel now">
+    <div class="row" style="justify-content:space-between">
+      <span class="muted small">Đang phát</span>
+      <button class="btn small warn hidden" id="skip">⏭ Qua bài</button>
+    </div>
+    <div id="now" class="song"><div class="info muted">Chưa có bài nào</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="btn active" data-tab="search">Tìm bài</button>
+    <button class="btn" data-tab="queue">Danh sách (<span id="qcount">0</span>)</button>
+  </div>
+
+  <div id="tab-search" class="panel">
+    <form id="search-form">
+      <div class="row">
+        <input class="grow" type="search" name="q" placeholder="Tên bài hát, ca sĩ…" autocomplete="off" enterkeyhint="search">
+        <button class="btn primary">Tìm</button>
+      </div>
+      <label class="switch small muted" style="margin-top:6px"><input type="checkbox" name="karaoke" checked> Chỉ tìm bản karaoke</label>
+    </form>
+    <div id="results"></div>
+  </div>
+
+  <div id="tab-queue" class="panel hidden"><div id="queue"></div></div>
+
+  <p class="small muted">Bạn là <b id="me"></b> · <a href="#" id="rename">đổi tên</a></p>
+</div>
+
+<div id="name-modal" class="modal hidden">
+  <form class="panel" id="name-form">
+    <h2>Tên của bạn là gì?</h2>
+    <p class="muted small">Tên sẽ hiện trên TV khi tới bài bạn chọn.</p>
+    <p><input type="text" name="name" maxlength="40" required placeholder="Ví dụ: Tuấn bàn 5"></p>
+    <button class="btn primary">Vào chọn bài</button>
+  </form>
+</div>
+<script type="module" src="js/room.js"></script>
+</body>
+</html>
