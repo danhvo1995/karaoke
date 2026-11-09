@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, update, set, $, esc, param, roomUrl, isAdminUser, waitForUser, sortQueue, toast,
-} from "./common.js?v=7";
-import { QR_SECONDS } from "./config.js?v=7";
+} from "./common.js?v=8";
+import { QR_SECONDS } from "./config.js?v=8";
 
 const roomId = param("r");
 let queue = [];
@@ -65,13 +65,7 @@ function ytReady() {
       onStateChange: (e) => {
         if (e.data === YT.PlayerState.ENDED) playNext();
         // Báo trạng thái tạm dừng để nút trên trang admin hiển thị đúng.
-        else if (current && (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.PLAYING)) {
-          const paused = e.data === YT.PlayerState.PAUSED;
-          if (!!current.paused !== paused) {
-            current.paused = paused;
-            update(ref(db, `rooms/${roomId}/now`), { paused }).catch(() => {});
-          }
-        }
+        else syncPaused(e.data);
       },
       onError: () => { toast("Video không phát được, chuyển bài tiếp theo"); setTimeout(playNext, 1500); },
     },
@@ -136,7 +130,18 @@ function renderNext() {
   $("#next-box").innerHTML = n ? `Tiếp theo: <span class="who">🎤 ${esc(n.by)}</span> · ${esc(n.title)}` : "Tiếp theo: chưa có bài, quét mã QR để chọn bài!";
 }
 
+// Báo trạng thái tạm dừng lên Firebase để nút trên trang admin hiển thị đúng,
+// kể cả khi dừng bằng cách bấm trực tiếp vào video trên TV.
+function syncPaused(state) {
+  if (!current || (state !== YT.PlayerState.PAUSED && state !== YT.PlayerState.PLAYING)) return;
+  const paused = state === YT.PlayerState.PAUSED;
+  if (!!current.paused === paused) return;
+  current.paused = paused;
+  update(ref(db, `rooms/${roomId}/now`), { paused }).catch(() => {});
+}
+
 function tickOverlay() {
+  if (player && player.getPlayerState) syncPaused(player.getPlayerState());
   let show = false;
   if (current && player && player.getDuration) {
     const t = player.getCurrentTime() || 0;

@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=7";
+} from "./common.js?v=8";
 
 const roomId = param("r");
 let queue = [];

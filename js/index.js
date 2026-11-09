@@ -1,7 +1,7 @@
 import {
   auth, db, ref, onValue, set, update, remove, $, esc, roomUrl, isAdminUser, toast,
   signInWithEmailAndPassword, signOut,
-} from "./common.js?v=7";
+} from "./common.js?v=8";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 let offRooms = null;
