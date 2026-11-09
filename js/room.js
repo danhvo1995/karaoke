@@ -1,7 +1,7 @@
 import {
   auth, db, ref, onValue, set, remove, $, esc, param, waitForUser, signInAnonymously,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js";
+} from "./common.js?v=5";
 
 const roomId = param("r");
 let queue = [];
@@ -98,6 +98,11 @@ function renderQueue() {
       <div class="info"><div class="title">${esc(q.title)}</div><div class="muted small">🎤 ${esc(q.by)}${mine ? " (bạn)" : ""}</div></div>
       <div class="actions col"></div>`;
     const actions = row.querySelector(".actions");
+    if (i === 0) {
+      const t = document.createElement("span");
+      t.className = "tag"; t.textContent = "Sắp hát";
+      actions.appendChild(t);
+    }
     if (meta.open && meta.allowGuestPriority && i > 0) {
       const b = document.createElement("button");
       b.className = "btn small"; b.textContent = "⤒ Ưu tiên"; b.title = "Đưa bài lên đầu danh sách";

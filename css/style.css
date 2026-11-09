@@ -31,7 +31,9 @@ input[type=text], input[type=email], input[type=password], input[type=search] {
 .song .info { flex: 1; min-width: 0; }
 .song .title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .song .actions { flex: none; display: grid; grid-template-columns: repeat(3, auto); gap: 4px; justify-content: end; }
-.song .actions.col { grid-template-columns: auto; }
+.song .actions.col { grid-template-columns: auto; width: 104px; }
+.song .actions.col .btn { width: 100%; }
+.song .actions .tag { text-align: center; padding: 6px 8px; }
 .song .actions .btn { min-width: 38px; text-align: center; }
 @media (max-width: 480px) {
   .song img { width: 64px; height: 36px; }

@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, update, set, $, esc, param, roomUrl, isAdminUser, waitForUser, sortQueue, toast,
-} from "./common.js";
-import { QR_SECONDS } from "./config.js";
+} from "./common.js?v=5";
+import { QR_SECONDS } from "./config.js?v=5";
 
 const roomId = param("r");
 let queue = [];
