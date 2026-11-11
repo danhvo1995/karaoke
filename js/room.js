@@ -1,11 +1,12 @@
 import {
   auth, db, ref, onValue, set, remove, $, esc, param, waitForUser, signInAnonymously,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=13";
+} from "./common.js?v=14";
 
 const roomId = param("r");
 let queue = [];
 let now = null;
+let refreshSuggest = () => {};
 let meta = {};
 let myName = "";
 
@@ -53,6 +54,7 @@ function askName() {
   onValue(ref(db, `rooms/${roomId}/now`), (s) => {
     const n = s.val();
     now = n;
+    refreshSuggest();
     refreshTaken();
     $("#now").innerHTML = n
       ? `<img src="${esc(n.thumb)}" alt=""><div class="info"><div class="title">${esc(n.title)}</div><div class="muted small">🎤 ${esc(n.by)}</div></div>`
@@ -75,12 +77,13 @@ function askName() {
     };
   });
 
-  wireSearch($("#search-form"), $("#results"), async (video) => {
+  refreshSuggest = wireSearch($("#search-form"), $("#results"), async (video) => {
     if (!meta.open) throw new Error("Room đã đóng.");
     await addToQueue(roomId, video, myName, queue);
     const pos = queue.length + 1;
     toast(`Đã thêm! Bài của bạn đứng thứ ${pos} trong danh sách.`);
-  }, () => takenIds(queue, now));
+  }, () => takenIds(queue, now), () => now?.videoId || null);
+  refreshSuggest();
 })();
 
 function renderQueue() {

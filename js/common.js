@@ -5,7 +5,7 @@ import {
 import {
   getDatabase, ref, onValue, push, set, update, remove, get,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=13";
+import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=14";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -111,32 +111,46 @@ const toItem = (it, id) => ({
   thumb: it.snippet.thumbnails?.medium?.url || it.snippet.thumbnails?.default?.url || "",
 });
 
-export async function suggestAfter(videoId, exclude) {
-  let pool = [];
+async function channelPool(videoId) {
   try {
     const [info] = await cached(`vid_${videoId}`, async () => {
       const d = await ytApi("videos", { part: "snippet", id: videoId });
       return (d.items || []).map((it) => ({ channelId: it.snippet.channelId }));
     });
-    if (info?.channelId) {
-      pool = await cached(`ch_${info.channelId}`, async () => {
-        const d = await ytApi("search", {
-          part: "snippet", type: "video", videoEmbeddable: "true", maxResults: "30",
-          channelId: info.channelId, order: "viewCount",
-        });
-        return (d.items || []).map((it) => toItem(it, it.id.videoId));
+    if (!info?.channelId) return [];
+    return await cached(`ch_${info.channelId}`, async () => {
+      const d = await ytApi("search", {
+        part: "snippet", type: "video", videoEmbeddable: "true", maxResults: "30",
+        channelId: info.channelId, order: "viewCount",
       });
-    }
-  } catch (_) {}
-  let fresh = pool.filter((v) => !exclude.has(v.videoId));
-  if (!fresh.length) {
-    try { fresh = (await searchYouTube("nhạc trẻ hay nhất", true)).filter((v) => !exclude.has(v.videoId)); }
-    catch (_) {}
-  }
+      return (d.items || []).map((it) => toItem(it, it.id.videoId));
+    });
+  } catch (_) { return []; }
+}
+
+async function popularPool() {
+  try { return await searchYouTube("nhạc trẻ hay nhất", true); } catch (_) { return []; }
+}
+
+export async function suggestAfter(videoId, exclude) {
+  let fresh = (await channelPool(videoId)).filter((v) => !exclude.has(v.videoId));
+  if (!fresh.length) fresh = (await popularPool()).filter((v) => !exclude.has(v.videoId));
   if (!fresh.length) return null;
   // Chọn ngẫu nhiên trong nhóm phổ biến nhất để đỡ lặp lại.
   const top = fresh.slice(0, 10);
   return top[Math.floor(Math.random() * top.length)];
+}
+
+// Danh sách gợi ý khi ô tìm kiếm trống: bài cùng kênh với bài đang hát, rồi bài phổ biến.
+export async function suggestionList(seedVideoId) {
+  const seen = new Set();
+  const out = [];
+  const pools = [seedVideoId ? await channelPool(seedVideoId) : [], await popularPool()];
+  for (const pool of pools) for (const v of pool) {
+    if (out.length >= 20 || seen.has(v.videoId) || v.videoId === seedVideoId) continue;
+    seen.add(v.videoId); out.push(v);
+  }
+  return out;
 }
 
 // ---------- Hàng đợi ----------
@@ -205,11 +219,28 @@ export function toast(msg) {
   el._t = setTimeout(() => el.classList.remove("show"), 3500);
 }
 
-export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set()) {
+export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set(), getSeed = () => null) {
+  let mode = "suggest";
+  let shownSeed;
+  let token = 0;
+  const showSuggestions = async (force = false) => {
+    const seed = getSeed();
+    if (!force && mode === "suggest" && seed === shownSeed) return;
+    mode = "suggest"; shownSeed = seed;
+    if (!resultsEl.querySelector(".song")) resultsEl.innerHTML = `<p class="muted">Đang tải gợi ý…</p>`;
+    const my = ++token;
+    const items = await suggestionList(seed);
+    if (my !== token || mode !== "suggest" || form.q.value.trim()) return;
+    if (!items.length) { resultsEl.innerHTML = ""; return; }
+    renderResults(resultsEl, items, onPick, getTaken());
+    resultsEl.insertAdjacentHTML("afterbegin", `<p class="muted small">✨ Gợi ý cho bạn${seed ? " (theo bài đang hát)" : ""}</p>`);
+  };
+  form.q.addEventListener("input", () => { if (!form.q.value.trim()) showSuggestions(true); });
   form.onsubmit = async (e) => {
     e.preventDefault();
     const q = form.q.value.trim();
-    if (!q) return;
+    if (!q) return showSuggestions(true);
+    mode = "search";
     resultsEl.innerHTML = `<p class="muted">Đang tìm…</p>`;
     try {
       const items = await searchYouTube(q, form.karaoke ? form.karaoke.checked : true);
@@ -218,4 +249,6 @@ export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set()) 
       resultsEl.innerHTML = `<p class="error">${esc(err.message)}</p>`;
     }
   };
+  // Gọi lại khi bài đang hát đổi để làm mới gợi ý (chỉ khi ô tìm kiếm đang trống).
+  return () => { if (!form.q.value.trim()) showSuggestions(); };
 }

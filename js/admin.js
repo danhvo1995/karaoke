@@ -1,11 +1,12 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=13";
+} from "./common.js?v=14";
 
 const roomId = param("r");
 let queue = [];
 let now = null;
+let refreshSuggest = () => {};
 
 (async () => {
   const u = await waitForUser();
@@ -36,6 +37,7 @@ let now = null;
   onValue(ref(db, `rooms/${roomId}/now`), (s) => {
     const n = s.val();
     now = n;
+    refreshSuggest();
     $("#toggle").textContent = n?.paused ? "▶ Tiếp tục" : "⏸ Tạm dừng";
     $("#toggle").disabled = !n;
     refreshTaken();
@@ -61,10 +63,11 @@ let now = null;
     };
   });
 
-  wireSearch($("#search-form"), $("#results"), async (video) => {
+  refreshSuggest = wireSearch($("#search-form"), $("#results"), async (video) => {
     await addToQueue(roomId, video, "MC", queue, { admin: true });
     toast("Đã thêm: " + video.title);
-  }, () => takenIds(queue, now));
+  }, () => takenIds(queue, now), () => now?.videoId || null);
+  refreshSuggest();
 })();
 
 function swap(i, j) {
