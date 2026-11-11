@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
-  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds, wireTabs,
-} from "./common.js?v=15";
+  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds, wireTabs, pref,
+} from "./common.js?v=16";
 
 const roomId = param("r");
 let queue = [];
@@ -28,7 +28,10 @@ let refreshSuggest = () => {};
     $("#allowPrio").checked = !!m.allowGuestPriority;
     $("#autoplay").checked = m.autoplay !== false;
   });
-  const meta = (k) => (e) => update(ref(db, `rooms/${roomId}/meta`), { [k]: e.target.checked });
+  const meta = (k) => (e) => {
+    update(ref(db, `rooms/${roomId}/meta`), { [k]: e.target.checked });
+    if (k !== "open") pref.set("room-" + k, e.target.checked); // room tạo sau dùng lại lựa chọn này
+  };
   $("#open").onchange = meta("open");
   $("#allowSkip").onchange = meta("allowGuestSkip");
   $("#allowPrio").onchange = meta("allowGuestPriority");

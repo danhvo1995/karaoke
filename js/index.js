@@ -1,7 +1,7 @@
 import {
-  auth, db, ref, onValue, set, update, remove, $, esc, roomUrl, isAdminUser, toast,
+  auth, db, ref, onValue, set, update, remove, $, esc, roomUrl, isAdminUser, toast, pref,
   signInWithEmailAndPassword, signOut,
-} from "./common.js?v=15";
+} from "./common.js?v=16";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 let offRooms = null;
@@ -40,7 +40,10 @@ $("#create-form").onsubmit = async (e) => {
   if (!name) return;
   const id = newId();
   await set(ref(db, `rooms/${id}/meta`), {
-    name, createdAt: Date.now(), open: true, allowGuestSkip: true, allowGuestPriority: true,
+    name, createdAt: Date.now(), open: true,
+    allowGuestSkip: pref.get("room-allowGuestSkip", true),
+    allowGuestPriority: pref.get("room-allowGuestPriority", true),
+    autoplay: pref.get("room-autoplay", true),
   });
   e.target.reset();
   toast("Đã tạo room " + name);

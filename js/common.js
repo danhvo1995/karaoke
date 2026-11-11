@@ -5,7 +5,7 @@ import {
 import {
   getDatabase, ref, onValue, push, set, update, remove, get,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=15";
+import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=16";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -258,12 +258,15 @@ export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set(), 
     renderResults(resultsEl, items, onPick, getTaken());
     resultsEl.insertAdjacentHTML("afterbegin", `<p class="muted small">✨ Gợi ý cho bạn${seed ? " (theo bài đang hát)" : ""}</p>`);
   };
-  form.q.addEventListener("input", () => { if (!form.q.value.trim()) showSuggestions(true); });
+  form.q.addEventListener("input", () => {
+    if (!form.q.value.trim()) { pref.set("last-query", ""); showSuggestions(true); }
+  });
   form.onsubmit = async (e) => {
     e.preventDefault();
     const q = form.q.value.trim();
     if (!q) return showSuggestions(true);
     mode = "search";
+    pref.set("last-query", q);
     resultsEl.innerHTML = `<p class="muted">Đang tìm…</p>`;
     try {
       const items = await searchYouTube(q, form.karaoke ? form.karaoke.checked : true);
@@ -273,5 +276,7 @@ export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set(), 
     }
   };
   // Gọi lại khi bài đang hát đổi để làm mới gợi ý (chỉ khi ô tìm kiếm đang trống).
+  const last = pref.get("last-query", "");
+  if (last) { form.q.value = last; form.requestSubmit ? form.requestSubmit() : form.onsubmit(new Event("submit")); }
   return () => { if (!form.q.value.trim()) showSuggestions(); };
 }
