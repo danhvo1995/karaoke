@@ -5,7 +5,7 @@ import {
 import {
   getDatabase, ref, onValue, push, set, update, remove, get,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=17";
+import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=18";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -238,6 +238,23 @@ export function toast(msg) {
   el._t = setTimeout(() => el.classList.remove("show"), 3500);
 }
 
+// Gợi ý từ khóa khi đang gõ (giống ô tìm kiếm YouTube). Dùng dịch vụ gợi ý của Google qua
+// JSONP: miễn phí, không tốn quota API. Đây là dịch vụ không chính thức nên lỗi thì bỏ qua.
+let jsonpSeq = 0;
+function keywordSuggest(q) {
+  return new Promise((resolve) => {
+    const cb = `__kSug${++jsonpSeq}`;
+    const s = document.createElement("script");
+    const done = (v) => { delete window[cb]; s.remove(); clearTimeout(t); resolve(v); };
+    const t = setTimeout(() => done([]), 3000);
+    window[cb] = (data) => done((data?.[1] || []).map((x) => (Array.isArray(x) ? x[0] : x)).filter(Boolean).slice(0, 8));
+    s.onerror = () => done([]);
+    s.src = "https://suggestqueries.google.com/complete/search?" +
+      new URLSearchParams({ client: "youtube", ds: "yt", hl: "vi", gl: "vn", q, callback: cb });
+    document.head.appendChild(s);
+  });
+}
+
 export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set(), getSeed = () => null) {
   let mode = "suggest";
   let shownSeed;
@@ -258,12 +275,36 @@ export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set(), 
     renderResults(resultsEl, items, onPick, getTaken());
     resultsEl.insertAdjacentHTML("afterbegin", `<p class="muted small">✨ Gợi ý cho bạn${seed ? " (theo bài đang hát)" : ""}</p>`);
   };
+  // Hộp gợi ý từ khóa ngay dưới ô tìm kiếm.
+  const box = document.createElement("div");
+  box.className = "kw-box hidden";
+  form.querySelector(".row").after(box);
+  const hideBox = () => box.classList.add("hidden");
+  let kwTimer = null, kwToken = 0;
+  form.q.setAttribute("autocomplete", "off");
   form.q.addEventListener("input", () => {
-    if (!form.q.value.trim()) { pref.set("last-query", ""); showSuggestions(true); }
+    const q = form.q.value.trim();
+    clearTimeout(kwTimer);
+    if (!q) { hideBox(); pref.set("last-query", ""); showSuggestions(true); return; }
+    kwTimer = setTimeout(async () => {
+      const my = ++kwToken;
+      const list = await keywordSuggest(q);
+      if (my !== kwToken || form.q.value.trim() !== q) return;
+      if (!list.length) return hideBox();
+      box.innerHTML = list.map((k) => `<button type="button" class="kw">🔍 ${esc(k)}</button>`).join("");
+      box.querySelectorAll(".kw").forEach((b, i) => {
+        b.onmousedown = (e) => e.preventDefault(); // giữ focus để không bị ẩn trước khi bấm
+        b.onclick = () => { form.q.value = list[i]; hideBox(); form.requestSubmit ? form.requestSubmit() : form.onsubmit(new Event("submit")); };
+      });
+      box.classList.remove("hidden");
+    }, 250);
   });
+  form.q.addEventListener("blur", () => setTimeout(hideBox, 200));
+  form.q.addEventListener("keydown", (e) => { if (e.key === "Escape") hideBox(); });
   form.onsubmit = async (e) => {
     e.preventDefault();
     const q = form.q.value.trim();
+    hideBox(); clearTimeout(kwTimer); kwToken++;
     if (!q) return showSuggestions(true);
     mode = "search";
     pref.set("last-query", q);

@@ -83,3 +83,9 @@ body.tv { overflow: hidden; background: #000; }
   .desk-only { display: block; }
   .side-title { font-weight: 700; margin-bottom: 6px; }
 }
+
+/* Gợi ý từ khóa khi gõ */
+.kw-box { margin-top: 6px; border: 1px solid var(--line); border-radius: 8px; background: #0b0d11; overflow: hidden; }
+.kw-box .kw { display: block; width: 100%; text-align: left; padding: 10px 12px; background: none; border: 0; border-bottom: 1px solid var(--line); color: var(--text); font-size: .95rem; cursor: pointer; }
+.kw-box .kw:last-child { border-bottom: 0; }
+.kw-box .kw:hover, .kw-box .kw:focus { background: #1d212b; }
