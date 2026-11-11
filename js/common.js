@@ -5,7 +5,7 @@ import {
 import {
   getDatabase, ref, onValue, push, set, update, remove, get,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=14";
+import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=15";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -210,6 +210,25 @@ export function takenIds(queueArr, now) {
   return s;
 }
 
+// Lưu tùy chọn trên trình duyệt này để giữ nguyên khi tải lại trang.
+export const pref = {
+  get(k, def) { try { const v = localStorage.getItem("karaoke-pref-" + k); return v === null ? def : JSON.parse(v); } catch (_) { return def; } },
+  set(k, v) { try { localStorage.setItem("karaoke-pref-" + k, JSON.stringify(v)); } catch (_) {} },
+};
+
+// Gắn các tab "Danh sách / Tìm bài" và nhớ tab đang chọn.
+export function wireTabs(page) {
+  const btns = document.querySelectorAll("[data-tab]");
+  const show = (tab) => {
+    btns.forEach((x) => x.classList.toggle("active", x.dataset.tab === tab));
+    $("#tab-queue").classList.toggle("hidden", tab !== "queue");
+    $("#tab-search").classList.toggle("hidden", tab !== "search");
+  };
+  btns.forEach((b) => { b.onclick = () => { show(b.dataset.tab); pref.set(page + "-tab", b.dataset.tab); }; });
+  const saved = pref.get(page + "-tab", null);
+  if (saved === "queue" || saved === "search") show(saved);
+}
+
 export function toast(msg) {
   let el = document.getElementById("toast");
   if (!el) { el = document.createElement("div"); el.id = "toast"; document.body.appendChild(el); }
@@ -223,6 +242,10 @@ export function wireSearch(form, resultsEl, onPick, getTaken = () => new Set(), 
   let mode = "suggest";
   let shownSeed;
   let token = 0;
+  if (form.karaoke) {
+    form.karaoke.checked = pref.get("karaoke-only", true);
+    form.karaoke.onchange = () => pref.set("karaoke-only", form.karaoke.checked);
+  }
   const showSuggestions = async (force = false) => {
     const seed = getSeed();
     if (!force && mode === "suggest" && seed === shownSeed) return;

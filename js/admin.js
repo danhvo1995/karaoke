@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
-  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=14";
+  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds, wireTabs,
+} from "./common.js?v=15";
 
 const roomId = param("r");
 let queue = [];
@@ -55,13 +55,7 @@ let refreshSuggest = () => {};
     b.onclick = () => set(ref(db, `rooms/${roomId}/cmd`), { type: b.dataset.cmd, at: Date.now() });
   });
 
-  document.querySelectorAll("[data-tab]").forEach((b) => {
-    b.onclick = () => {
-      document.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("active", x === b));
-      $("#tab-queue").classList.toggle("hidden", b.dataset.tab !== "queue");
-      $("#tab-search").classList.toggle("hidden", b.dataset.tab !== "search");
-    };
-  });
+  wireTabs("admin");
 
   refreshSuggest = wireSearch($("#search-form"), $("#results"), async (video) => {
     await addToQueue(roomId, video, "MC", queue, { admin: true });

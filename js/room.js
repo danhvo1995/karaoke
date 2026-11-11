@@ -1,7 +1,7 @@
 import {
   auth, db, ref, onValue, set, remove, $, esc, param, waitForUser, signInAnonymously,
-  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=14";
+  sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds, wireTabs,
+} from "./common.js?v=15";
 
 const roomId = param("r");
 let queue = [];
@@ -69,13 +69,7 @@ function askName() {
     catch (_) { toast("Không được phép qua bài lúc này."); }
   };
 
-  document.querySelectorAll("[data-tab]").forEach((b) => {
-    b.onclick = () => {
-      document.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("active", x === b));
-      $("#tab-queue").classList.toggle("hidden", b.dataset.tab !== "queue");
-      $("#tab-search").classList.toggle("hidden", b.dataset.tab !== "search");
-    };
-  });
+  wireTabs("room");
 
   refreshSuggest = wireSearch($("#search-form"), $("#results"), async (video) => {
     if (!meta.open) throw new Error("Room đã đóng.");
