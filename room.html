@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chọn bài – Karaoke</title>
-<link rel="stylesheet" href="css/style.css?v=12">
+<link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
-<div class="wrap">
+<div class="wrap split">
   <h1 id="room-name">🎤 Karaoke</h1>
   <p id="closed" class="panel error hidden">Room đã đóng, không thể chọn thêm bài.</p>
 
@@ -36,7 +36,7 @@
     <div id="results"></div>
   </div>
 
-  <div id="tab-queue" class="panel hidden"><div id="queue"></div></div>
+  <div id="tab-queue" class="panel side hidden"><div class="desk-only side-title">Danh sách phát (<span id="qcount2">0</span>)</div><div id="queue"></div></div>
 
   <p class="small muted">Bạn là <b id="me"></b> · <a href="#" id="rename">đổi tên</a></p>
 </div>
@@ -49,6 +49,6 @@
     <button class="btn primary">Vào chọn bài</button>
   </form>
 </div>
-<script type="module" src="js/room.js?v=12"></script>
+<script type="module" src="js/room.js?v=13"></script>
 </body>
 </html>

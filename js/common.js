@@ -5,7 +5,7 @@ import {
 import {
   getDatabase, ref, onValue, push, set, update, remove, get,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=12";
+import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=13";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

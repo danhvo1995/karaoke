@@ -1,7 +1,7 @@
 import {
   auth, db, ref, onValue, set, remove, $, esc, param, waitForUser, signInAnonymously,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=12";
+} from "./common.js?v=13";
 
 const roomId = param("r");
 let queue = [];
@@ -85,6 +85,7 @@ function askName() {
 
 function renderQueue() {
   $("#qcount").textContent = queue.length;
+  $("#qcount2").textContent = queue.length;
   const el = $("#queue");
   if (!el) return;
   if (!queue.length) { el.innerHTML = `<p class="muted">Danh sách trống.</p>`; return; }

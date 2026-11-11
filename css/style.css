@@ -71,3 +71,15 @@ body.tv { overflow: hidden; background: #000; }
 #idle .qr-big { background: #fff; padding: 2vh; border-radius: 2vh; }
 #idle .qr-big canvas, #idle .qr-big img { width: 40vh; height: 40vh; display: block; image-rendering: pixelated; }
 #start { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; background: rgba(0,0,0,.85); }
+
+/* ---------- Máy tính: danh sách phát luôn hiện cột bên phải ---------- */
+.desk-only { display: none; }
+@media (min-width: 1000px) {
+  .wrap.split { max-width: 1360px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 34%); column-gap: 20px; align-items: start; }
+  .wrap.split > * { grid-column: 1; }
+  .wrap.split > #tab-queue { grid-column: 2; grid-row: 1 / span 30; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; display: block !important; margin-bottom: 0; }
+  .wrap.split > #tab-search.hidden { display: block !important; }
+  .wrap.split > .tabs { display: none; }
+  .desk-only { display: block; }
+  .side-title { font-weight: 700; margin-bottom: 6px; }
+}

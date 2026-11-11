@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=12";
+} from "./common.js?v=13";
 
 const roomId = param("r");
 let queue = [];
@@ -75,6 +75,7 @@ function swap(i, j) {
 
 function renderQueue() {
   $("#qcount").textContent = queue.length;
+  $("#qcount2").textContent = queue.length;
   const el = $("#queue");
   if (!queue.length) { el.innerHTML = `<p class="muted">Danh sách trống.</p>`; return; }
   el.innerHTML = "";

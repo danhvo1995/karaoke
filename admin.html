@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quản lý room – Karaoke</title>
-<link rel="stylesheet" href="css/style.css?v=12">
+<link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
-<div class="wrap">
+<div class="wrap split">
   <div class="row" style="justify-content:space-between">
     <a href="index.html" class="small">← Các room</a>
     <a id="tv-link" class="btn primary" target="_blank" rel="noopener">Mở màn hình TV</a>
@@ -41,7 +41,7 @@
     <button class="btn" data-tab="search">Tìm bài</button>
   </div>
 
-  <div id="tab-queue" class="panel"><div id="queue"></div></div>
+  <div id="tab-queue" class="panel side"><div class="desk-only side-title">Danh sách phát (<span id="qcount2">0</span>)</div><div id="queue"></div></div>
 
   <div id="tab-search" class="panel hidden">
     <form id="search-form">
@@ -54,6 +54,6 @@
     <div id="results"></div>
   </div>
 </div>
-<script type="module" src="js/admin.js?v=12"></script>
+<script type="module" src="js/admin.js?v=13"></script>
 </body>
 </html>
