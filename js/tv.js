@@ -1,7 +1,8 @@
 import {
   db, ref, onValue, update, set, $, esc, param, roomUrl, isAdminUser, waitForUser, sortQueue, toast,
-} from "./common.js?v=11";
-import { QR_SECONDS } from "./config.js?v=11";
+  suggestAfter,
+} from "./common.js?v=12";
+import { QR_SECONDS } from "./config.js?v=12";
 
 const roomId = param("r");
 let queue = [];
@@ -10,6 +11,10 @@ let started = false;
 let advancing = false;
 let player = null;
 let qrManualUntil = 0;   // admin bấm "Hiện QR": hiện đến thời điểm này
+let autoplay = true;     // tự phát bài đề xuất khi hết danh sách
+let lastVideoId = null;  // bài vừa phát, dùng để tìm bài đề xuất
+let autoErrors = 0;      // số lần liên tiếp bài đề xuất bị lỗi
+const played = new Set();
 
 function qrImg(text, cell) {
   const qr = qrcode(0, "M");
@@ -38,12 +43,14 @@ function ytReady() {
     const m = s.val() || {};
     $("#idle-title").textContent = "🎤 " + (m.name || "Karaoke");
     $("#start-title").textContent = m.name || "Màn hình TV";
+    autoplay = m.autoplay !== false;
+    renderNext();
   });
 
   onValue(ref(db, `rooms/${roomId}/queue`), (s) => {
     queue = sortQueue(s.val());
     renderNext();
-    if (started && !current && queue.length) playNext();
+    if (started && queue.length && (!current)) playNext();
   });
 
   // Lệnh từ admin (pause/play/skip) và yêu cầu qua bài từ khách.
@@ -65,11 +72,16 @@ function ytReady() {
     playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, iv_load_policy: 3, fs: 0 },
     events: {
       onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) autoErrors = 0;
         if (e.data === YT.PlayerState.ENDED) playNext();
         // Báo trạng thái tạm dừng để nút trên trang admin hiển thị đúng.
         else syncPaused(e.data);
       },
-      onError: () => { toast("Video không phát được, chuyển bài tiếp theo"); setTimeout(playNext, 1500); },
+      onError: () => {
+        if (current?.auto) autoErrors++;
+        toast("Video không phát được, chuyển bài tiếp theo");
+        setTimeout(playNext, 1500);
+      },
     },
   });
 
@@ -79,7 +91,7 @@ function ytReady() {
     started = true;
     const snap = await new Promise((res) => onValue(ref(db, `rooms/${roomId}/now`), res, { onlyOnce: true }));
     const n = snap.val();
-    if (n) { current = n; player.loadVideoById(n.videoId); showIdle(false); renderNow(); }
+    if (n) { current = n; lastVideoId = n.videoId; played.add(n.videoId); player.loadVideoById(n.videoId); showIdle(false); renderNow(); }
     else playNext();
   };
 
@@ -101,23 +113,36 @@ function listenOnce(path, fn) {
 async function playNext() {
   if (advancing || !player) return;
   advancing = true;
+  let retry = false;
   try {
     const next = queue[0];
-    if (!next) {
-      current = null;
-      await set(ref(db, `rooms/${roomId}/now`), null);
-      player.stopVideo();
-      showIdle(true);
-    } else {
+    if (next) {
+      autoErrors = 0;
       current = { videoId: next.videoId, title: next.title, thumb: next.thumb || "", by: next.by, startedAt: Date.now() };
       await update(ref(db, `rooms/${roomId}`), { now: current, [`queue/${next.id}`]: null });
-      player.loadVideoById(next.videoId);
-      showIdle(false);
+    } else {
+      const sug = autoplay && lastVideoId && autoErrors < 3 ? await suggestAfter(lastVideoId, played) : null;
+      if (queue.length) { retry = true; return; } // có khách vừa thêm bài trong lúc tìm
+      if (!sug) {
+        current = null;
+        await set(ref(db, `rooms/${roomId}/now`), null);
+        player.stopVideo();
+        showIdle(true);
+        renderNow(); renderNext();
+        return;
+      }
+      current = { videoId: sug.videoId, title: sug.title, thumb: sug.thumb || "", by: "Tự động", auto: true, startedAt: Date.now() };
+      await set(ref(db, `rooms/${roomId}/now`), current);
     }
-    renderNow();
+    lastVideoId = current.videoId;
+    played.add(current.videoId);
+    player.loadVideoById(current.videoId);
+    showIdle(false);
+    renderNow(); renderNext();
   } finally {
     advancing = false;
   }
+  if (retry) playNext();
 }
 
 function showIdle(on) { $("#idle").classList.toggle("hidden", !on); }
@@ -129,7 +154,9 @@ function renderNow() {
 
 function renderNext() {
   const n = queue[0];
-  $("#next-box").innerHTML = n ? `Tiếp theo: <span class="who">🎤 ${esc(n.by)}</span> · ${esc(n.title)}` : "Tiếp theo: chưa có bài, quét mã QR để chọn bài!";
+  $("#next-box").innerHTML = n
+    ? `Tiếp theo: <span class="who">🎤 ${esc(n.by)}</span> · ${esc(n.title)}`
+    : autoplay ? "Tiếp theo: bài đề xuất tự động · quét mã QR để chọn bài!" : "Tiếp theo: chưa có bài, quét mã QR để chọn bài!";
 }
 
 // Báo trạng thái tạm dừng lên Firebase để nút trên trang admin hiển thị đúng,

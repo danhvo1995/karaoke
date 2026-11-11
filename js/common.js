@@ -5,7 +5,7 @@ import {
 import {
   getDatabase, ref, onValue, push, set, update, remove, get,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=11";
+import { firebaseConfig, YT_API_KEY, MAX_PENDING_PER_GUEST } from "./config.js?v=12";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -81,6 +81,62 @@ export async function searchYouTube(query, karaoke = true) {
   }));
   set(cRef, { t: Date.now(), items }).catch(() => {});
   return items;
+}
+
+// ---------- Bài đề xuất khi hết danh sách (giống autoplay YouTube) ----------
+// YouTube đã bỏ API "video liên quan", nên lấy các bài nổi bật cùng kênh với bài vừa hát.
+async function cached(key, loader) {
+  const cRef = ref(db, `searchCache/${cacheKey(key)}`);
+  try {
+    const v = (await get(cRef)).val();
+    if (v && Date.now() - v.t < CACHE_TTL) return v.items || [];
+  } catch (_) {}
+  const items = await loader();
+  set(cRef, { t: Date.now(), items }).catch(() => {});
+  return items;
+}
+
+async function ytApi(path, params) {
+  const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
+  url.search = new URLSearchParams({ ...params, key: YT_API_KEY });
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("YouTube API lỗi " + res.status);
+  return res.json();
+}
+
+const toItem = (it, id) => ({
+  videoId: id,
+  title: decodeEntities(it.snippet.title),
+  channel: decodeEntities(it.snippet.channelTitle),
+  thumb: it.snippet.thumbnails?.medium?.url || it.snippet.thumbnails?.default?.url || "",
+});
+
+export async function suggestAfter(videoId, exclude) {
+  let pool = [];
+  try {
+    const [info] = await cached(`vid_${videoId}`, async () => {
+      const d = await ytApi("videos", { part: "snippet", id: videoId });
+      return (d.items || []).map((it) => ({ channelId: it.snippet.channelId }));
+    });
+    if (info?.channelId) {
+      pool = await cached(`ch_${info.channelId}`, async () => {
+        const d = await ytApi("search", {
+          part: "snippet", type: "video", videoEmbeddable: "true", maxResults: "30",
+          channelId: info.channelId, order: "viewCount",
+        });
+        return (d.items || []).map((it) => toItem(it, it.id.videoId));
+      });
+    }
+  } catch (_) {}
+  let fresh = pool.filter((v) => !exclude.has(v.videoId));
+  if (!fresh.length) {
+    try { fresh = (await searchYouTube("nhạc trẻ hay nhất", true)).filter((v) => !exclude.has(v.videoId)); }
+    catch (_) {}
+  }
+  if (!fresh.length) return null;
+  // Chọn ngẫu nhiên trong nhóm phổ biến nhất để đỡ lặp lại.
+  const top = fresh.slice(0, 10);
+  return top[Math.floor(Math.random() * top.length)];
 }
 
 // ---------- Hàng đợi ----------

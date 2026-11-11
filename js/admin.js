@@ -1,7 +1,7 @@
 import {
   db, ref, onValue, set, update, remove, $, esc, param, roomUrl, isAdminUser, waitForUser,
   sortQueue, addToQueue, prioritize, wireSearch, toast, markTaken, takenIds,
-} from "./common.js?v=11";
+} from "./common.js?v=12";
 
 const roomId = param("r");
 let queue = [];
@@ -25,11 +25,13 @@ let now = null;
     $("#open").checked = !!m.open;
     $("#allowSkip").checked = !!m.allowGuestSkip;
     $("#allowPrio").checked = !!m.allowGuestPriority;
+    $("#autoplay").checked = m.autoplay !== false;
   });
   const meta = (k) => (e) => update(ref(db, `rooms/${roomId}/meta`), { [k]: e.target.checked });
   $("#open").onchange = meta("open");
   $("#allowSkip").onchange = meta("allowGuestSkip");
   $("#allowPrio").onchange = meta("allowGuestPriority");
+  $("#autoplay").onchange = meta("autoplay");
 
   onValue(ref(db, `rooms/${roomId}/now`), (s) => {
     const n = s.val();

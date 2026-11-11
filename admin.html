@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quản lý room – Karaoke</title>
-<link rel="stylesheet" href="css/style.css?v=11">
+<link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
 <div class="wrap">
@@ -30,6 +30,7 @@
       <label class="switch"><input type="checkbox" id="open"> Room đang mở (khách được thêm bài)</label>
       <label class="switch"><input type="checkbox" id="allowSkip"> Khách được qua bài</label>
       <label class="switch"><input type="checkbox" id="allowPrio"> Khách được ưu tiên bài</label>
+      <label class="switch"><input type="checkbox" id="autoplay"> Tự phát bài đề xuất khi hết danh sách</label>
     </div>
     <div class="row small muted" style="margin-top:8px">Link khách: <a id="guest-link" target="_blank" rel="noopener"></a>
       <button class="btn small" id="copy">Copy</button></div>
@@ -53,6 +54,6 @@
     <div id="results"></div>
   </div>
 </div>
-<script type="module" src="js/admin.js?v=11"></script>
+<script type="module" src="js/admin.js?v=12"></script>
 </body>
 </html>
